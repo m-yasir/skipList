@@ -13,46 +13,43 @@ import java.util.LinkedHashSet;
 
 public class Main {
 
+    // SCRAPING URLS!
     private static String beginnerUrl = "https://www.coursera.org/browse/computer-science?facets=skillNameMultiTag%2CjobTitleMultiTag%2CdifficultyLevelTag%3ABEGINNER%2Clanguages%2CentityTypeTag%2CpartnerMultiTag%2CcategoryMultiTag%3Acomputer-science%2CsubcategoryMultiTag&sortField=";
     private static String intermediateUrl = "https://www.coursera.org/browse/computer-science?facets=skillNameMultiTag%2CjobTitleMultiTag%2CdifficultyLevelTag%3AINTERMEDIATE%2Clanguages%2CentityTypeTag%2CpartnerMultiTag%2CcategoryMultiTag%3Acomputer-science%2CsubcategoryMultiTag&sortField=";
     private static String advancedUrl = "https://www.coursera.org/browse/computer-science?facets=skillNameMultiTag%2CjobTitleMultiTag%2CdifficultyLevelTag%3AADVANCED%2Clanguages%2CentityTypeTag%2CpartnerMultiTag%2CcategoryMultiTag%3Acomputer-science%2CsubcategoryMultiTag&sortField=";
+    private static String expertUrl = "https://www.lynda.com/Developer-training-tutorials/50-0.html?category=advanced_339";
+
+    // CHROME WEBDRIVER URL
     private static String webDriverDir = ".\\src\\main\\res\\chromedriver.exe";
+
     public static void main(String[] args) {
         System.setProperty("webdriver.chrome.driver",webDriverDir);
 
         // TODO: Implement a memory friendly method to getCourses from the site
 
-        LinkedHashSet<Element> beginnerCourses = getCourses(new TestScraping(beginnerUrl));
-        LinkedHashSet<Element> intermediateCourses = getCourses(new TestScraping(intermediateUrl));
-        LinkedHashSet<Element> advancedUrlCourses = getCourses(new TestScraping(advancedUrl));
+        LinkedHashSet<Element> beginnerCourses = getCourses(new TestScraping(beginnerUrl, ".rc-OfferingCard"));
+        LinkedHashSet<Element> intermediateCourses = getCourses(new TestScraping(intermediateUrl, ".rc-OfferingCard"));
+        LinkedHashSet<Element> advancedCourses = getCourses(new TestScraping(advancedUrl, ".rc-OfferingCard"));
+        LinkedHashSet<Element> expertCourses = getCourses(new ExpertScrapping(expertUrl, ".card-list-style"));
 
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("***************** Available Beginner Courses: *****************");
+        printCourses("beginner", beginnerCourses, ".product-name");
+        printCourses("intermediate", intermediateCourses, ".product-name");
+        printCourses("advanced", advancedCourses, ".product-name");
+        printCourses("expert", expertCourses, "h3");
 
-        beginnerCourses.forEach((e) -> {
-            System.out.println(e.getElementsByClass("product-name").text());
+    }
+
+    private static void printCourses(String levelOfCourse, LinkedHashSet<Element> list, String query) {
+        levelOfCourse = levelOfCourse.substring(0, 1).toUpperCase() + levelOfCourse.substring(1).toLowerCase();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println("***************** Available " +  levelOfCourse +" Courses: ***************** ");
+
+        list.forEach((e) -> {
+            String el = e.select(query).text();
+            System.out.println(el);
         });
-
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("***************** Available Intermediate Courses: *****************");
-
-        intermediateCourses.forEach((e) -> {
-            System.out.println(e.getElementsByClass("product-name").text());
-        });
-
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("***************** Available Advanced Courses: ***************** ");
-
-        advancedUrlCourses.forEach((e) -> {
-            System.out.println(e.getElementsByClass("product-name").text());
-        });
-
     }
 
     private static LinkedHashSet<Element> getCourses(Thread connectionThread) {
@@ -64,34 +61,32 @@ public class Main {
             System.out.println(e.getMessage());
         }
 
-        return ((TestScraping) connectionThread).elements;
+        return ((ScrapingTester) connectionThread).elements;
     }
 }
 
-class TestScraping extends Thread {
+class TestScraping extends ScrapingTester {
 
-    public static LinkedHashSet<Element> elements;
+    private String url, className;
 
-    private String url;
-
-    public TestScraping(String url) {
+    public TestScraping(String url, String className) {
         super();
         this.url = url;
+        this.className = className;
     }
 
     // TODO: Handle Exceptions according to their type
     @Override
     public void run() {
 
-        elements = new LinkedHashSet<Element>();
-
+        ScrapingTester.elements = new LinkedHashSet<Element>();
         try {
             Scrapper.initWebDrive(url); // TODO: Add proper error handling if browser doesn't open or crashes or is closed by user on purpose.
-            elements.addAll(Scrapper.fetchDataByQuerySelector(url, ".rc-OfferingCard"));
+            ScrapingTester.elements.addAll(Scrapper.fetchDataByQuerySelector(url, className));
             Scrapper.scrollBrowserBy(2000);
             Scrapper.setDocument();
-            elements.addAll(Scrapper.getElements(".rc-OfferingCard"));
-        } catch (Exception e) { // IOException | IllegalArgumentException | ExceptionInInitializerError | NullPointerException
+            ScrapingTester.elements.addAll(Scrapper.getElements(className));
+        } catch (Exception e) { // IOException | InterruptedThreadException | IllegalArgumentException | ExceptionInInitializerError | NullPointerException
             System.out.println(e.getMessage());
             System.exit(-1);
         }
@@ -100,4 +95,38 @@ class TestScraping extends Thread {
 
         this.interrupt();
     }
+}
+
+class ExpertScrapping extends ScrapingTester {
+
+    private String url, className;
+
+    public ExpertScrapping(String url, String className) {
+        super();
+        this.url = url;
+        this.className = className;
+    }
+
+    @Override
+    public void run() {
+        ScrapingTester.elements = new LinkedHashSet<Element>();
+
+        try {
+            Scrapper.initWebDrive(url); // TODO: Add proper error handling if browser doesn't open or crashes or is closed by user on purpose.
+            ScrapingTester.elements.addAll(Scrapper.fetchDataByQuerySelector(url, className));
+        } catch (Exception e) { // IOException | IllegalArgumentException | InterruptedException | ExceptionInInitializerError | NullPointerException
+            System.out.println(e.getMessage());
+            System.exit(-1);
+        }
+
+        Scrapper.closeBrowser();
+
+        this.interrupt();
+    }
+}
+
+class ScrapingTester extends Thread {
+    public static LinkedHashSet<Element> elements;
+
+    public ScrapingTester() {}
 }
