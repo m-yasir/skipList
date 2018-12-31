@@ -1,15 +1,16 @@
 package main.test;
 
-import org.jsoup.Jsoup;
+import main.lib.MyLinkedList;
+import main.lib.SkipList;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
@@ -18,6 +19,7 @@ public class Main {
     private static String intermediateUrl = "https://www.coursera.org/browse/computer-science?facets=skillNameMultiTag%2CjobTitleMultiTag%2CdifficultyLevelTag%3AINTERMEDIATE%2Clanguages%2CentityTypeTag%2CpartnerMultiTag%2CcategoryMultiTag%3Acomputer-science%2CsubcategoryMultiTag&sortField=";
     private static String advancedUrl = "https://www.coursera.org/browse/computer-science?facets=skillNameMultiTag%2CjobTitleMultiTag%2CdifficultyLevelTag%3AADVANCED%2Clanguages%2CentityTypeTag%2CpartnerMultiTag%2CcategoryMultiTag%3Acomputer-science%2CsubcategoryMultiTag&sortField=";
     private static String expertUrl = "https://www.lynda.com/Developer-training-tutorials/50-0.html?category=advanced_339";
+    private static String[] skillLevels = {"beginner", "intermediate", "advanced", "expert"};
 
     // CHROME WEBDRIVER URL
     private static String webDriverDir = ".\\src\\main\\res\\chromedriver.exe";
@@ -27,29 +29,65 @@ public class Main {
 
         // TODO: Implement a memory friendly method to getCourses from the site
 
-        LinkedHashSet<Element> beginnerCourses = getCourses(new TestScraping(beginnerUrl, ".rc-OfferingCard"));
-        LinkedHashSet<Element> intermediateCourses = getCourses(new TestScraping(intermediateUrl, ".rc-OfferingCard"));
-        LinkedHashSet<Element> advancedCourses = getCourses(new TestScraping(advancedUrl, ".rc-OfferingCard"));
-        LinkedHashSet<Element> expertCourses = getCourses(new ExpertScrapping(expertUrl, ".card-list-style"));
+        SkipList<Element> beginnerCourses = new SkipList<Element>("beginner", getCourses(new TestScraping(beginnerUrl, ".rc-OfferingCard")));
+//        SkipList<Element> intermediateCourses = new SkipList<Element>("intermediate", getCourses(new TestScraping(intermediateUrl, ".rc-OfferingCard")));
+//        SkipList<Element> advancedCourses = new SkipList<Element>("advanced", getCourses(new TestScraping(advancedUrl, ".rc-OfferingCard")));
+//        SkipList<Element> expertCourses = new SkipList<Element>("expert", getCourses(new ExpertScrapping(expertUrl, ".card-list-style")));
+//
+        HashMap<String, CourseData> courses = new HashMap<>();
+//
+        courses.put("beginner", new CourseData(".product-name", beginnerCourses));
+//        courses.put("intermediate", new CourseData(".product-name", intermediateCourses));
+//        courses.put("advanced", new CourseData(".product-name", advancedCourses));
+//        courses.put("expert", new CourseData("h3", expertCourses));
 
-        printCourses("beginner", beginnerCourses, ".product-name");
-        printCourses("intermediate", intermediateCourses, ".product-name");
-        printCourses("advanced", advancedCourses, ".product-name");
-        printCourses("expert", expertCourses, "h3");
+        Scanner s = new Scanner(System.in);
+        System.out.print("Please enter your skill level (Beginner, Intermediate, Advanced or Expert): ");
+        String level = "";
+        while (true) {
+            level = s.next();
+            if (!courses.containsKey(level)) {
+                level = null;
+                System.out.println("Invalid Skill level, please try again!");
+                continue;
+            }
+            break;
+        }
+
+        selectCourses(level, courses.get(level).skipList, courses.get(level).querySelectName, s);
 
     }
 
-    private static void printCourses(String levelOfCourse, LinkedHashSet<Element> list, String query) {
+    private static void selectCourses(String levelOfCourse, SkipList<Element> list, String query, Scanner s) {
         levelOfCourse = levelOfCourse.substring(0, 1).toUpperCase() + levelOfCourse.substring(1).toLowerCase();
         System.out.println();
         System.out.println();
         System.out.println();
         System.out.println("***************** Available " +  levelOfCourse +" Courses: ***************** ");
 
-        list.forEach((e) -> {
-            String el = e.select(query).text();
+        MyLinkedList<Element> ll = list.getItem(levelOfCourse.toLowerCase());
+
+        String ch = "";
+
+        String el = "";
+
+        for (int i = 0; i < ll.getSize() && ch.isEmpty(); i++) {
+            el = ll.find(i).getData().select(query).text();
             System.out.println(el);
-        });
+            System.out.print("Press enter to see next course! enter other key to fetch the current course!");
+            if (i == 0) s.nextLine();
+            ch = s.nextLine();
+        }
+
+        WebDriver webDriver = new ChromeDriver();
+
+        webDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
+        webDriver.get("https://www.google.com.pk/");
+
+        WebElement webElement = webDriver.findElement(By.name("q"));
+        webElement.sendKeys(el);
+        webElement.submit();
     }
 
     private static LinkedHashSet<Element> getCourses(Thread connectionThread) {
@@ -110,7 +148,6 @@ class ExpertScrapping extends ScrapingTester {
     @Override
     public void run() {
         ScrapingTester.elements = new LinkedHashSet<Element>();
-
         try {
             Scrapper.initWebDrive(url); // TODO: Add proper error handling if browser doesn't open or crashes or is closed by user on purpose.
             ScrapingTester.elements.addAll(Scrapper.fetchDataByQuerySelector(url, className));
@@ -120,7 +157,6 @@ class ExpertScrapping extends ScrapingTester {
         }
 
         Scrapper.closeBrowser();
-
         this.interrupt();
     }
 }
@@ -129,4 +165,34 @@ class ScrapingTester extends Thread {
     public static LinkedHashSet<Element> elements;
 
     public ScrapingTester() {}
+}
+
+class CourseData {
+    public String querySelectName;
+    public SkipList<Element> skipList;
+
+    public CourseData(String querySelectName, SkipList<Element> skipList) {
+        this.querySelectName = querySelectName;
+        this.skipList = skipList;
+    }
+}
+
+class Loader extends Thread {
+    @Override
+    public void run() {
+        System.out.print("Fetching data");
+        int i = 4;
+        while (true) {
+            System.out.print(".");
+            try {
+                this.sleep(1000);
+            } catch (Exception e) { }
+            if (i == 0) {
+                System.out.print("\b\b\b\b\r");
+                System.out.print("Fetching data");
+                i = 4;
+            }
+            i--;
+        }
+    }
 }
