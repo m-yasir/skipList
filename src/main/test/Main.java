@@ -25,21 +25,25 @@ public class Main {
     private static String webDriverDir = ".\\src\\main\\res\\chromedriver.exe";
 
     public static void main(String[] args) {
-        System.setProperty("webdriver.chrome.driver",webDriverDir);
+
+        // This is necessary, it's set's the property of the chrome driver directory so that ChromeWebDriver class's object can use it.
+        System.setProperty("webdriver.chrome.driver", webDriverDir);
 
         // TODO: Implement a memory friendly method to getCourses from the site
 
+        // COMMENT SOME COURSES and other place where there's a reference to these courses (in this same scope) if your internet is slow and don't want to check all the offerings.
+
         SkipList<Element> beginnerCourses = new SkipList<Element>("beginner", getCourses(new TestScraping(beginnerUrl, ".rc-OfferingCard")));
-//        SkipList<Element> intermediateCourses = new SkipList<Element>("intermediate", getCourses(new TestScraping(intermediateUrl, ".rc-OfferingCard")));
-//        SkipList<Element> advancedCourses = new SkipList<Element>("advanced", getCourses(new TestScraping(advancedUrl, ".rc-OfferingCard")));
-//        SkipList<Element> expertCourses = new SkipList<Element>("expert", getCourses(new ExpertScrapping(expertUrl, ".card-list-style")));
-//
+        SkipList<Element> intermediateCourses = new SkipList<Element>("intermediate", getCourses(new TestScraping(intermediateUrl, ".rc-OfferingCard")));
+        SkipList<Element> advancedCourses = new SkipList<Element>("advanced", getCourses(new TestScraping(advancedUrl, ".rc-OfferingCard")));
+        SkipList<Element> expertCourses = new SkipList<Element>("expert", getCourses(new ExpertScrapping(expertUrl, ".card-list-style")));
+
         HashMap<String, CourseData> courses = new HashMap<>();
-//
+
         courses.put("beginner", new CourseData(".product-name", beginnerCourses));
-//        courses.put("intermediate", new CourseData(".product-name", intermediateCourses));
-//        courses.put("advanced", new CourseData(".product-name", advancedCourses));
-//        courses.put("expert", new CourseData("h3", expertCourses));
+        courses.put("intermediate", new CourseData(".product-name", intermediateCourses));
+        courses.put("advanced", new CourseData(".product-name", advancedCourses));
+        courses.put("expert", new CourseData("h3", expertCourses));
 
         Scanner s = new Scanner(System.in);
         System.out.print("Please enter your skill level (Beginner, Intermediate, Advanced or Expert): ");
@@ -47,8 +51,9 @@ public class Main {
         while (true) {
             level = s.next();
             if (!courses.containsKey(level)) {
-                level = null;
-                System.out.println("Invalid Skill level, please try again!");
+                level = "";
+                System.out.println("Invalid Skill level, please try again! press Q to quit");
+                if (level.equalsIgnoreCase("q")) System.exit(0);
                 continue;
             }
             break;
@@ -74,10 +79,13 @@ public class Main {
         for (int i = 0; i < ll.getSize() && ch.isEmpty(); i++) {
             el = ll.find(i).getData().select(query).text();
             System.out.println(el);
-            System.out.print("Press enter to see next course! enter other key to fetch the current course!");
+            System.out.print("Press enter to see next course! Enter any other key to fetch the current course! or Press Q to exit");
             if (i == 0) s.nextLine();
+            if (ch.equalsIgnoreCase("q")) System.exit(0);
             ch = s.nextLine();
         }
+
+        // Below code searches the course in chrome!
 
         WebDriver webDriver = new ChromeDriver();
 
