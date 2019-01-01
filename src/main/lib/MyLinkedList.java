@@ -15,14 +15,6 @@ public class MyLinkedList<T>
         head = new Node<T>(null, ++numNodes, this.list, listIndex);
     }
 
-    // public void addAtHead(Object dat)
-    // {
-    // 	Node temp = head;
-    // 	head = new Node(dat, numNodes, list);
-    // 	head.next = temp;
-    // 	numNodes++;
-    // }
-
     public void add(T data)
     {
         Node<T> temp = head;
@@ -38,31 +30,6 @@ public class MyLinkedList<T>
         temp.next = new Node<T>(data, numNodes, list, listIndex);
         numNodes++;
     }
-
-    // public void addAtIndex(int index, Object dat)
-    // {
-    // 	Node temp = head;
-    // 	Node holder;
-    // 	for(int i=0; i < index-1 && temp.next != null; i++)
-    // 	{
-    // 		temp = temp.next;
-    // 	}
-    // 	holder = temp.next;
-    // 	temp.next = new Node(dat);
-    // 	temp.next.next = holder;
-    // 	numNodes++;
-    // }
-
-    // public void deleteAtIndex(int index)
-    // {
-    // 	Node temp = head;
-    // 	for(int i=0; i< index - 1 && temp.next != null; i++)
-    // 	{
-    // 		temp = temp.next;
-    // 	}
-    // 	temp.next = temp.next.next;
-    // 	numNodes--;
-    // }
 
     public int find(Node<T> n)
     {

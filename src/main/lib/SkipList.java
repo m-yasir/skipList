@@ -1,34 +1,4 @@
- package main.lib;
-
-// class MyLinkedList<T> {
-//     LinkedList ll;
-//     Iterator itr;
-//     MyLinkedList skipList;
-//     int parentIndex;
-//     MyLinkedList(MyLinkedList skipList, int parentIndex){
-//         super();
-//         ll = new LinkedList<T>();
-//         itr = ll.iterator();
-//         skipList = skipList;
-//         parentIndex = parentIndex;
-//     }
-//     Iterator right(){
-//         return this.itr.next();
-//     }
-//     Iterator left(){
-//         return this.itr.prev();
-//     }
-//     Iterator top(){
-//         int index = ll.indexOf(this.head);
-//         return this.skipList[parentIndex-1].itr.next();
-//         // return this.skipList[parentIndex-1].get(index);
-//     }
-//     Iterator bottom(){
-//         int index = ll.indexOf(this.head);
-//         return this.skipList[parentIndex+1].getItem(index);
-//     }
-    
-// }
+package main.lib;
 
 import java.util.LinkedHashSet;
 import java.util.List;
