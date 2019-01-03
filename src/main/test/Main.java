@@ -48,17 +48,13 @@ public class Main {
         coursesHash.put("expert", new CourseData("h3", courses.getItem("expert")));
 
         Scanner s = new Scanner(System.in);
-        System.out.print("Please enter your skill level (Beginner, Intermediate, Advanced or Expert): ");
-        String level = "";
-        while (true) {
-            level = s.next();
-            if (!coursesHash.containsKey(level)) {
-                level = "";
-                System.out.println("Invalid Skill level, please try again! press Q to quit");
-                if (level.equalsIgnoreCase("q")) System.exit(0);
-                continue;
-            }
-            break;
+        System.out.print("Please enter your skill level (Beginner, Intermediate, Advanced or Expert) OR Q to exit: ");
+        String level = s.next();
+        while (!coursesHash.containsKey(level)) {
+            if (level.equalsIgnoreCase("q")) System.exit(0);
+            System.out.println("Invalid Skill level, please try again! press Q to quit");
+            s.nextLine();
+            level = s.nextLine();
         }
 
         selectCourses(level, coursesHash.get(level).list, coursesHash.get(level).querySelectName, s);
