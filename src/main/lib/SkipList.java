@@ -52,6 +52,10 @@ public class SkipList<T> {
         this.list[this.findIndex(level)].add(data);
     }
 
+    public void add(String level, LinkedHashSet<T> array) {
+        this.list[this.findIndex(level)].add(array);
+    }
+
     public MyLinkedList getItem(String level) {
         return this.list[this.findIndex(level)];
     }

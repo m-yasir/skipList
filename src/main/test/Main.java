@@ -33,24 +33,26 @@ public class Main {
 
         // COMMENT SOME COURSES and other place where there's a reference to these courses (in this same scope) if your internet is slow and don't want to check all the offerings.
 
-        SkipList<Element> beginnerCourses = new SkipList<Element>("beginner", getCourses(new TestScraping(beginnerUrl, ".rc-OfferingCard")));
-        SkipList<Element> intermediateCourses = new SkipList<Element>("intermediate", getCourses(new TestScraping(intermediateUrl, ".rc-OfferingCard")));
-        SkipList<Element> advancedCourses = new SkipList<Element>("advanced", getCourses(new TestScraping(advancedUrl, ".rc-OfferingCard")));
-        SkipList<Element> expertCourses = new SkipList<Element>("expert", getCourses(new ExpertScrapping(expertUrl, ".card-list-style")));
+        SkipList<Element> courses = new SkipList<Element>("beginner", getCourses(new TestScraping(beginnerUrl, ".rc-OfferingCard")));
 
-        HashMap<String, CourseData> courses = new HashMap<>();
+        // Adding courses to skiplist
+        courses.add("intermediate", getCourses(new TestScraping(intermediateUrl, ".rc-OfferingCard")));
+        courses.add("advanced", getCourses(new TestScraping(advancedUrl, ".rc-OfferingCard")));
+        courses.add("expert", getCourses(new ExpertScrapping(expertUrl, ".card-list-style")));
 
-        courses.put("beginner", new CourseData(".product-name", beginnerCourses));
-        courses.put("intermediate", new CourseData(".product-name", intermediateCourses));
-        courses.put("advanced", new CourseData(".product-name", advancedCourses));
-        courses.put("expert", new CourseData("h3", expertCourses));
+        HashMap<String, CourseData> coursesHash = new HashMap<>();
+
+        coursesHash.put("beginner", new CourseData(".product-name", courses.getItem("beginner")));
+        coursesHash.put("intermediate", new CourseData(".product-name", courses.getItem("intermediate")));
+        coursesHash.put("advanced", new CourseData(".product-name", courses.getItem("advanced")));
+        coursesHash.put("expert", new CourseData("h3", courses.getItem("expert")));
 
         Scanner s = new Scanner(System.in);
         System.out.print("Please enter your skill level (Beginner, Intermediate, Advanced or Expert): ");
         String level = "";
         while (true) {
             level = s.next();
-            if (!courses.containsKey(level)) {
+            if (!coursesHash.containsKey(level)) {
                 level = "";
                 System.out.println("Invalid Skill level, please try again! press Q to quit");
                 if (level.equalsIgnoreCase("q")) System.exit(0);
@@ -59,25 +61,23 @@ public class Main {
             break;
         }
 
-        selectCourses(level, courses.get(level).skipList, courses.get(level).querySelectName, s);
+        selectCourses(level, coursesHash.get(level).list, coursesHash.get(level).querySelectName, s);
 
     }
 
-    private static void selectCourses(String levelOfCourse, SkipList<Element> list, String query, Scanner s) {
+    private static void selectCourses(String levelOfCourse, MyLinkedList<Element> list, String query, Scanner s) {
         levelOfCourse = levelOfCourse.substring(0, 1).toUpperCase() + levelOfCourse.substring(1).toLowerCase();
         System.out.println();
         System.out.println();
         System.out.println();
         System.out.println("***************** Available " +  levelOfCourse +" Courses: ***************** ");
 
-        MyLinkedList<Element> ll = list.getItem(levelOfCourse.toLowerCase());
-
         String ch = "";
 
         String el = "";
 
-        for (int i = 0; i < ll.getSize() && ch.isEmpty(); i++) {
-            el = ll.find(i).getData().select(query).text();
+        for (int i = 0; i < list.getSize() && ch.isEmpty(); i++) {
+            el = list.find(i).getData().select(query).text();
             System.out.println(el);
             System.out.print("Press enter to see next course! Enter any other key to fetch the current course! or Press Q to exit");
             if (i == 0) s.nextLine();
@@ -177,11 +177,11 @@ class ScrapingTester extends Thread {
 
 class CourseData {
     public String querySelectName;
-    public SkipList<Element> skipList;
+    public MyLinkedList<Element> list;
 
-    public CourseData(String querySelectName, SkipList<Element> skipList) {
+    public CourseData(String querySelectName, MyLinkedList<Element> list) {
         this.querySelectName = querySelectName;
-        this.skipList = skipList;
+        this.list = list;
     }
 }
 
