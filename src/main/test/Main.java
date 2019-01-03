@@ -81,8 +81,8 @@ public class Main {
             System.out.println(el);
             System.out.print("Press enter to see next course! Enter any other key to fetch the current course! or Press Q to exit");
             if (i == 0) s.nextLine();
-            if (ch.equalsIgnoreCase("q")) System.exit(0);
             ch = s.nextLine();
+            if (ch.equalsIgnoreCase("q")) System.exit(0);
         }
 
         // Below code searches the course in chrome!
