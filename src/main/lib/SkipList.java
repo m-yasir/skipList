@@ -1,7 +1,7 @@
 package main.lib;
 
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SkipList<T> {
     // 0: top
@@ -17,7 +17,16 @@ public class SkipList<T> {
         }
     }
 
-    public SkipList(String level, LinkedHashSet<T> array) {
+    public SkipList(String level, Set<T> array) {
+        this();
+        int index = findIndex(level);
+                if (index == -1) throw new IllegalArgumentException();
+        for (T el : array) {
+            this.list[index].add(el);
+        }
+    }
+
+    public SkipList(String level, List<T> array) {
         this();
         int index = findIndex(level);
                 if (index == -1) throw new IllegalArgumentException();
@@ -52,11 +61,12 @@ public class SkipList<T> {
         this.list[this.findIndex(level)].add(data);
     }
 
-    public void add(String level, LinkedHashSet<T> array) {
-        this.list[this.findIndex(level)].add(array);
+    public void add(String level, Set<T> array) {
+        int index = this.findIndex(level);
+        for (T el : array) this.list[index].add(el);
     }
 
-    public MyLinkedList getItem(String level) {
+    public MyLinkedList<T> getItem(String level) {
         return this.list[this.findIndex(level)];
     }
 
